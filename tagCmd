@@ -1,1 +1,1 @@
-git tag v1.0.0-alpha.1 && git push --tag
+git tag v1.0.0 && git push --tag
