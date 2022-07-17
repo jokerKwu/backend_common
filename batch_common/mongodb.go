@@ -6,7 +6,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
-	"main/batch_common/aws/ssm"
 	"time"
 )
 
@@ -66,7 +65,7 @@ func (a *EnvMongoDB) PingMongo(mongoClient *mongo.Client) error {
 func (a *EnvMongoDB) GetSsmMongoInfo() ([]string, error) {
 	var connInfos []string
 
-	connInfos, err := ssm.AwsGetParams([]string{
+	connInfos, err := AwsGetParams([]string{
 		fmt.Sprintf("mongodb_%s_%s_id", a.Env, a.Project),
 		fmt.Sprintf("mongodb_%s_%s_pw", a.Env, a.Project),
 		fmt.Sprintf("mongodb_%s_%s_domain", a.Env, a.Project),
