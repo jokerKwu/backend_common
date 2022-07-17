@@ -15,6 +15,13 @@ type MongoConf interface {
 }
 
 func (a *EnvMongoDB) InitCollection() error {
+	databaseName := a.Project + "_" + Env.Environment
+	mongo := MongoClient.Database(databaseName)
+	UserCollection = mongo.Collection("user")
+	SubscriptionCollection = mongo.Collection("subscription")
+	DeliveryCollection = mongo.Collection("delivery")
+	PaymentCollection = mongo.Collection("payment")
+	DeliveryHistoryCollection = mongo.Collection("deliveryHistory")
 
 	return nil
 }
@@ -24,6 +31,7 @@ func (a *EnvMongoDB) PingMongo(mongoClient *mongo.Client) error {
 	if err != nil {
 		return err
 	}
+	fmt.Println("db 핑 통과")
 	return nil
 }
 
