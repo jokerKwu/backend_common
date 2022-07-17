@@ -1,11 +1,12 @@
-name: Go
+name: tag patch auto increse
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - patch
+      - main
 
 jobs:
-
   build:
     runs-on: ubuntu-latest
     steps:
