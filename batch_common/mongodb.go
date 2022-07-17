@@ -28,6 +28,7 @@ var MongoDBEnv EnvMongoDB
 
 func InitMongoDB() error {
 	var err error
+	connUriDB := fmt.Sprintf("%s_%s", Env.Project, Env.Environment)
 	//TODO MongoDB 초기화 함수
 	//TODO 1. 몽고디비Env 초기화
 	InitMongoDBEnv()
@@ -43,7 +44,8 @@ func InitMongoDB() error {
 		return err
 	}
 	//TODO 5. 컬렉션 초기화
-	MongoDBEnv.InitCollection()
+	MongoDB = MongoClient.Database(connUriDB)
+	//MongoDBEnv.InitCollection()
 	return nil
 }
 

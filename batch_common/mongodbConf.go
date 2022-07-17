@@ -15,13 +15,11 @@ type MongoConf interface {
 }
 
 func (a *EnvMongoDB) InitCollection() error {
-	databaseName := a.Project + "_" + Env.Environment
-	mongo := MongoClient.Database(databaseName)
-	UserCollection = mongo.Collection("user")
-	SubscriptionCollection = mongo.Collection("subscription")
-	DeliveryCollection = mongo.Collection("delivery")
-	PaymentCollection = mongo.Collection("payment")
-	DeliveryHistoryCollection = mongo.Collection("deliveryHistory")
+	UserCollection = MongoDB.Collection("user")
+	SubscriptionCollection = MongoDB.Collection("subscription")
+	DeliveryCollection = MongoDB.Collection("delivery")
+	PaymentCollection = MongoDB.Collection("payment")
+	DeliveryHistoryCollection = MongoDB.Collection("deliveryHistory")
 
 	return nil
 }
