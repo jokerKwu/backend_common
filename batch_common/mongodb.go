@@ -5,41 +5,90 @@ import (
 	"fmt"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.mongodb.org/mongo-driver/mongo/readpref"
 	"time"
 )
 
-func InitMongoDB() error {
-	//TODO MongoDB 초기화 함수
+type EnvMongoDB struct {
+	Project     string
+	Environment string
+	RsName      string
+	LocalPort   int64
+}
 
+//mongodb+srv://ryan:tngkr485@cluster0.ke0pv.mongodb.net/?retryWrites=true&w=majority
+
+/*
+ProjectEnv
+
+   PROJECT: 'medical_web'
+   ENV: 'dev'
+   REGION: 'ap-northeast-2'
+*/
+var MongoDBEnv EnvMongoDB
+
+func InitMongoDB() error {
+	var err error
+	//TODO MongoDB 초기화 함수
+	//TODO 1. 몽고디비Env 초기화
+	InitMongoDBEnv()
+	//TODO 2. connURI 가져오기
+	connUri := MongoDBEnv.MakeConnURI(false)
+	//TODO 3. 몽고디비 연결
+	MongoClient, err = MongoDBEnv.ConnectMongo(connUri)
+	if err != nil {
+		return err
+	}
+	//TODO 4. 핑 테스트
+	if err = MongoDBEnv.PingMongo(MongoClient); err != nil {
+		return err
+	}
+	//TODO 5. 컬렉션 초기화
+	MongoDBEnv.InitCollection()
 	return nil
+}
+
+func InitMongoDBEnv() {
+	MongoDBEnv.Environment = Env.Environment
+	MongoDBEnv.Project = Env.Project
+	fmt.Println(MongoDBEnv)
 }
 
 func (a *EnvMongoDB) MakeConnURI(isLocal bool) string {
 	var connUri string
 
-	connInfos, _ := a.GetSsmMongoInfo()
-	connUriID := connInfos[0]
-	connUriPW := connInfos[1]
-	additionalOpt := ""
-	connUriDomain := connInfos[2]
-	connUri = fmt.Sprintf("mongodb://%s:%s@%s/?authSource=admin&replicaSet=%s&w=majority&readPreference=primary&retryWrites=true&ssl=false%s", connUriID, connUriPW, connUriDomain, a.RsName, additionalOpt)
-	if isLocal == true {
-		connUriDomain = fmt.Sprintf("localhost:%d", a.LocalPort)
-		additionalOpt = "&directConnection=true"
-		connUri = fmt.Sprintf("mongodb://%s:%s@%s/?authSource=admin&replicaSet=%s&w=majority&readPreference=primary&retryWrites=true&ssl=false%s", connUriID, connUriPW, connUriDomain, a.RsName, additionalOpt)
+	if Env.Environment == "prd" {
+		//TODO PRD connection URI
+	} else {
+		fmt.Println("여기 들어가야되는데")
+		/*
+			회사에서 사용하는 디비 정보
+			connInfos, _ := a.GetSsmMongoInfo()
+			connUriID := connInfos[0]
+			connUriPW := connInfos[1]
+			additionalOpt := ""
+			connUriDomain := connInfos[2]
+			connUri = fmt.Sprintf("mongodb://%s:%s@%s/?authSource=admin&replicaSet=%s&w=majority&readPreference=primary&retryWrites=true&ssl=false%s", connUriID, connUriPW, connUriDomain, a.RsName, additionalOpt)
+			if isLocal == true {
+				connUriDomain = fmt.Sprintf("localhost:%d", a.LocalPort)
+				additionalOpt = "&directConnection=true"
+				connUri = fmt.Sprintf("mongodb://%s:%s@%s/?authSource=admin&replicaSet=%s&w=majority&readPreference=primary&retryWrites=true&ssl=false%s", connUriID, connUriPW, connUriDomain, a.RsName, additionalOpt)
+			}
+		*/
+		// 개인 계정으로 임시로 테스트 진행
+		connInfos, err := AwsGetParam("mongodb_medical_web_dev_tmp")
+		fmt.Println(err)
+		connUri = connInfos
 	}
-
+	fmt.Println(connUri)
 	return connUri
 }
 
 func (a *EnvMongoDB) ConnectMongo(connUri string) (*mongo.Client, error) {
 	clientOptions := options.Client()
 	clientOptions = clientOptions.ApplyURI(connUri)
-	clientOptions.SetMaxPoolSize(200)
-	clientOptions.SetMinPoolSize(10)
-	clientOptions.SetMaxConnIdleTime(10 * time.Second)
-	clientOptions.SetSocketTimeout(8 * time.Second)
+	clientOptions.SetMaxPoolSize(1)
+	clientOptions.SetMinPoolSize(1)
+	clientOptions.SetMaxConnIdleTime(20 * time.Second)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	mongoClient, err := mongo.Connect(ctx, clientOptions)
@@ -49,69 +98,6 @@ func (a *EnvMongoDB) ConnectMongo(connUri string) (*mongo.Client, error) {
 	return mongoClient, nil
 }
 
-func (a *EnvMongoDB) InitCollection() error {
-
-	return nil
-}
-
-func (a *EnvMongoDB) PingMongo(mongoClient *mongo.Client) error {
-	err := mongoClient.Ping(context.TODO(), readpref.Primary())
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (a *EnvMongoDB) GetSsmMongoInfo() ([]string, error) {
-	var connInfos []string
-
-	connInfos, err := AwsGetParams([]string{
-		fmt.Sprintf("mongodb_%s_%s_id", a.Env, a.Project),
-		fmt.Sprintf("mongodb_%s_%s_pw", a.Env, a.Project),
-		fmt.Sprintf("mongodb_%s_%s_domain", a.Env, a.Project),
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return connInfos, nil
-}
-
 func CloseMongo() {
 	_ = MongoClient.Disconnect(context.TODO())
 }
-
-type EnvMongoDB struct {
-	Project   string
-	Env       string
-	RsName    string
-	LocalPort int64
-}
-
-type MongoConf interface {
-	GetSsmMongoInfo() ([]string, error)
-	ConnectMongo(connInfos []string, isLocal bool) (*mongo.Client, error)
-	InitCollection() error
-	PingMongo(mongoClient *mongo.Client) error
-}
-
-var (
-	UserCollection             *mongo.Collection
-	SubscriptionCollection     *mongo.Collection
-	SubscriptionPlanCollection *mongo.Collection
-	AddressBookCollection      *mongo.Collection
-	DeliveryCollection         *mongo.Collection
-	TermsCollection            *mongo.Collection
-	ProductInfoCollection      *mongo.Collection
-	QnACollection              *mongo.Collection
-	PaymentCollection          *mongo.Collection
-	EmailAuthCollection        *mongo.Collection
-	DeliveryHistoryCollection  *mongo.Collection
-	PaymentHistoryCollection   *mongo.Collection
-
-	AppUserAuthCollection *mongo.Collection
-	AppUserCollection     *mongo.Collection
-)
-
-var MongoClient *mongo.Client
-var MongoDB *mongo.Database

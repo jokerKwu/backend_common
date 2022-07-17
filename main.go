@@ -2,16 +2,23 @@ package main
 
 import (
 	"fmt"
-	"main/batch_common/aws/ssm"
-	"main/batch_common/db"
+	common "main/batch_common"
+	"os"
 )
 
 func main() {
-	fmt.Println("main startㄴ")
-	if err := ssm.InitAws("ap-north-2"); err != nil {
+	fmt.Println("main start")
+	os.Setenv("PROJECT", "medical_web")
+	os.Setenv("ENV", "dev")
+	os.Setenv("REGION", "ap-north-2")
+	if err := common.InitEnv(); err != nil {
 		return
 	}
-	if err := db.InitMongoDB(); err != nil {
+
+	if err := common.InitAws("ap-north-2"); err != nil {
+		return
+	}
+	if err := common.InitMongoDB(); err != nil {
 		return
 	}
 	fmt.Println("main test success")
