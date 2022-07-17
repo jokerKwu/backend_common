@@ -1,11 +1,26 @@
-package ssm
+package batch_common
 
 import (
 	"context"
 	"github.com/aws/aws-sdk-go-v2/aws"
+	AwsConfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"strings"
 )
+
+var awsClientSsm *ssm.Client
+
+func InitAws(region string) error {
+
+	awsConfig, err := AwsConfig.LoadDefaultConfig(context.TODO(),
+		AwsConfig.WithRegion(region))
+	if err != nil {
+		return err
+	}
+	awsClientSsm = ssm.NewFromConfig(awsConfig)
+
+	return nil
+}
 
 func AwsGetParams(paths []string) ([]string, error) {
 	ctx := context.TODO()
