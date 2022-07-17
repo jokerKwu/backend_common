@@ -6,7 +6,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
-	ssm "main/batch_common/aws/ssm"
+	"main/batch_common/aws/ssm"
 	"time"
 )
 
