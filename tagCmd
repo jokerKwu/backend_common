@@ -1,9 +1,9 @@
 patch
-
+fix: commit message
 
 minor
-feat(ryan): commit message
+feat: commit message
 
 major
-perf(ryan): commit message
+perf: commit message
 BREAKING CHANGE: major tag upgrade
