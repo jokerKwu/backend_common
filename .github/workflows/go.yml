@@ -18,7 +18,7 @@ jobs:
       with:
         go-version: 1.18
     - name: Build
-      run: go build -v ./...
+      run: go build
     - uses: actions/checkout@v2
     - name: Bump version and push tag
       id: tag_version
