@@ -3,7 +3,6 @@ name: tag patch auto increse
 on:
   push:
     branches:
-      - patch
       - main
 
 jobs:
