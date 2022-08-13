@@ -77,9 +77,19 @@ func (a *EnvMongoDB) MakeConnURI(isLocal bool) string {
 			}
 		*/
 		// 개인 계정으로 임시로 테스트 진행
-		connInfos, err := AwsGetParam("mongodb_medical_web_dev_tmp")
-		fmt.Println(err)
-		connUri = connInfos
+		additionalOpt := ""
+		connInfos, err := AwsGetParams([]string{
+			fmt.Sprintf("mongodb_%s_%s_id", Env.Environment, Env.Project),
+			fmt.Sprintf("mongodb_%s_%s_pw", Env.Environment, Env.Project),
+			fmt.Sprintf("mongodb_%s_domain", Env.Environment)})
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+		fmt.Println(connInfos)
+		connUriID := connInfos[0]
+		connUriPW := connInfos[1]
+		connUriDomain := connInfos[2]
+		connUri = fmt.Sprintf("mongodb://%s:%s@%s/?authSource=admin&replicaSet=rs0&w=majority&readPreference=primary&retryWrites=true&ssl=false%s", connUriID, connUriPW, connUriDomain, additionalOpt)
 	}
 	fmt.Println(connUri)
 	return connUri
